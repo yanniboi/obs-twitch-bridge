@@ -1,18 +1,28 @@
 #!/usr/bin/node
+import {InputItem, InputMap, ObsError, SceneItem, SceneMap, TokenData} from './types';
 
 require('dotenv').config();
 
 const OBSWebSocket = require('obs-websocket-js').default;
-const { ChatClient } = require('@twurple/chat');
-const { ApiClient } = require('@twurple/api');
+const {ChatClient} = require('@twurple/chat');
+const {ApiClient} = require('@twurple/api');
 
-const { RefreshingAuthProvider } = require('@twurple/auth');
+const {RefreshingAuthProvider} = require('@twurple/auth');
 const fs = require('fs');
 const tokenFile = process.env.TOKEN_PATH;
 
-const allowedCommands = ['help', 'scene', 'chat', 'list', 'toggle', 'toggleMute', 'record', 'stop'];
+const allowedCommands = [
+  'help',
+  'scene',
+  'chat',
+  'list',
+  'toggle',
+  'toggleMute',
+  'record',
+  'stop',
+];
 
-const sceneMap = {
+const sceneMap: SceneMap = {
   "starting": "Starting",
   "chatting": "Chatting",
   "linux": "Main - Linux",
@@ -20,7 +30,7 @@ const sceneMap = {
   "android": "Main - Android",
 };
 
-const inputMap = {
+const inputMap: InputMap = {
   "desktop": {
     "name": "Desktop Audio",
     "kind": "pulse_output_capture",
@@ -53,12 +63,12 @@ const obsPassword = process.env.OBS_PASSWORD;
 
 const tokenData = JSON.parse(fs.readFileSync(tokenFile, 'UTF-8'));
 const authProvider = new RefreshingAuthProvider(
-    {
-      clientId,
-      clientSecret,
-      onRefresh: async newTokenData => fs.writeFileSync(tokenFile, JSON.stringify(newTokenData, null, 4), 'UTF-8')
-    },
-    tokenData
+  {
+    clientId,
+    clientSecret,
+    onRefresh: async (newTokenData: TokenData) => fs.writeFileSync(tokenFile, JSON.stringify(newTokenData, null, 4), 'UTF-8')
+  },
+  tokenData
 );
 
 const chatClient = new ChatClient({
@@ -78,7 +88,7 @@ async function main() {
 
   try {
     await processCommand()
-  } catch (error) {
+  } catch (error: ObsError | any) {
     console.error('Failed to connect', error.code, error.message);
     await obs.disconnect();
   }
@@ -86,7 +96,7 @@ async function main() {
 }
 
 async function processCommand() {
-  switch(command) {
+  switch (command) {
     case 'scene':
       await obs.connect(obsUrl, obsPassword);
       await switchScene(args[3]);
@@ -138,15 +148,15 @@ function isValidCommand() {
   return (allowedCommands.indexOf(command) !== -1);
 }
 
-async function sendChatMessage(message) {
+async function sendChatMessage(message: string) {
   await chatClient.connect();
-  chatClient.onJoin(async(channel, user) => {
+  chatClient.onJoin(async (channel: string, user: string) => {
     await chatClient.say(channel, message);
     await chatClient.quit();
   });
 }
 
-async function switchScene(sceneName) {
+async function switchScene(sceneName: string) {
   if (!sceneMap[sceneName]) {
     console.error("Invalid scene name");
     return;
@@ -157,7 +167,7 @@ async function switchScene(sceneName) {
 
 async function toggleVisibility() {
   const response = await obs.call('GetSceneItemList', {sceneName: "CameraGroup"});
-  response.sceneItems.forEach(async (item) => {
+  response.sceneItems.forEach(async (item: SceneItem) => {
     await obs.call('SetSceneItemEnabled', {
       'sceneName': 'CameraGroup',
       'sceneItemId': item.sceneItemId,
@@ -166,7 +176,7 @@ async function toggleVisibility() {
   });
 }
 
-async function toggleMute(toggleName) {
+async function toggleMute(toggleName: string) {
   if (!inputMap[toggleName]) {
     console.error("Invalid input name");
     return;
@@ -187,9 +197,9 @@ async function stopRecording() {
   await obs.call('StopRecord');
 }
 
-async function getItemsInScene(sceneName) {
+async function getItemsInScene(sceneName: string) {
   const list = await obs.call('GetSceneItemList', {sceneName: 'Starting'});
-  const names = list.sceneItems.map((item) => item.sourceName);
+  const names = list.sceneItems.map((item: SceneItem) => item.sourceName);
   console.log(names)
 }
 
@@ -197,8 +207,8 @@ async function listSources() {
 
   // const list = await obs.call('GetInputList', {inputKind: 'v4l2_input'});
   const list = await obs.call('GetInputList');
-  const inputNames = list.inputs.map((input) => input.inputName);
-  const inputKinds = list.inputs.map((input) => input.inputKind);
+  const inputNames = list.inputs.map((input: InputItem) => input.inputName);
+  const inputKinds = list.inputs.map((input: InputItem) => input.inputKind);
   const distinctInputKinds = [...new Set(inputKinds)];
   console.log(distinctInputKinds);
   console.log(inputNames);
