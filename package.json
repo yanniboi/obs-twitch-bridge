@@ -1,0 +1,23 @@
+{
+  "name": "obs-websocket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@twurple/api": "^5.0.11",
+    "@twurple/auth": "^5.0.11",
+    "@twurple/chat": "^5.0.11",
+    "dotenv": "^16.3.1",
+    "fs": "0.0.1-security",
+    "obs-websocket-js": "^5",
+    "twitch": "^4.6.7",
+    "twitch-auth": "^4.6.7",
+    "twitch-chat-client": "^4.6.7",
+    "ws": "^8.3.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
